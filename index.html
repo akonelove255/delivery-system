@@ -82,8 +82,8 @@
       document.getElementById("quantity").value = row.quantity;
       document.getElementById("price").value = row.price;
       document.getElementById("plate").value = row.plate;
-      document.getElementById("statusDelivery").value = row.delivery;
-      document.getElementById("statusPayment").value = row.payment;
+      document.getElementById("statusDelivery").value = row.statusDelivery || "";
+      document.getElementById("statusPayment").value = row.statusPayment || "";
       document.getElementById("rowIndex").value = row.rowIndex;
       document.getElementById("recordId").value = row.id;
     }
@@ -176,8 +176,8 @@
           <td>${row.price || ""}</td>
           <td>${row.total || ""}</td>
           <td>${row.plate || ""}</td>
-          <td>${row.delivery || ""}</td>
-          <td>${row.payment || ""}</td>
+          <td>${row.statusDelivery || ""}</td>
+          <td>${row.statusPayment || ""}</td>
         <td>
         <button class='btn btn-sm btn-primary' onclick='editRow(${i})'>✏️</button>
         <button class='btn btn-sm btn-danger' onclick='deleteRow(${i})'>🗑</button>
@@ -199,8 +199,8 @@
       document.getElementById("quantity").value = row.quantity;
       document.getElementById("price").value = row.price;
       document.getElementById("plate").value = row.plate;
-      document.getElementById("statusDelivery").value = row.delivery;
-      document.getElementById("statusPayment").value = row.payment;
+      document.getElementById("statusDelivery").value = row.statusDelivery || "";
+      document.getElementById("statusPayment").value = row.statusPayment || "";
       document.getElementById("rowIndex").value = row.rowIndex;
       document.getElementById("recordId").value = row.id;
     }
