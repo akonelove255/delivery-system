@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ระบบส่งของ - ใช้ id ลบข้อมูล</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: auto; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    button { padding: 5px 10px; }
+    input, select { padding: 5px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <h2>ระบบบันทึกรายการส่งของ</h2>
+
+  <form id="form">
+    <input type="hidden" id="id" />
+    <label>วันที่ <input type="date" id="date" required /></label><br/>
+    <label>ชื่อลูกค้า <input type="text" id="customer" required /></label><br/>
+    <label>สินค้า <input type="text" id="product" required /></label><br/>
+    <label>จำนวน <input type="number" id="quantity" required /></label><br/>
+    <label>ราคา <input type="number" id="price" required /></label><br/>
+    <label>ทะเบียนรถ <input type="text" id="plate" /></label><br/>
+    <label>สถานะจัดส่ง 
+      <select id="delivery">
+        <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
+        <option value="ส่งแล้ว">ส่งแล้ว</option>
+      </select>
+    </label><br/>
+    <label>สถานะชำระ 
+      <select id="payment">
+        <option value="ยังไม่จ่าย">ยังไม่จ่าย</option>
+        <option value="จ่ายแล้ว">จ่ายแล้ว</option>
+      </select>
+    </label><br/>
+    <button type="submit">ยืนยันและบันทึก</button>
+  </form>
+
+  <h3>รายการทั้งหมด</h3>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>วันที่</th><th>ลูกค้า</th><th>สินค้า</th><th>จำนวน</th><th>ราคา</th>
+        <th>ทะเบียนรถ</th><th>จัดส่ง</th><th>ชำระ</th><th>รวม</th><th>จัดการ</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+
+document.getElementById("form").addEventListener("submit", e => {
+  e.preventDefault();
+  const formData = {
+    action: "add",
+    id: document.getElementById("id").value,
+    date: document.getElementById("date").value,
+    customer: document.getElementById("customer").value,
+    product: document.getElementById("product").value,
+    quantity: document.getElementById("quantity").value,
+    price: document.getElementById("price").value,
+    plate: document.getElementById("plate").value,
+    delivery: document.getElementById("delivery").value,
+    payment: document.getElementById("payment").value,
+  };
+
+  if (formData.id) formData.action = "edit";
+
+  fetch(scriptURL, {
+    method: "POST",
+    body: JSON.stringify(formData),
+    headers: { "Content-Type": "application/json" }
+  }).then(res => res.text())
+    .then(() => {
+      document.getElementById("form").reset();
+      document.getElementById("id").value = "";
+      loadData();
+    });
+});
+
+function loadData() {
+  fetch(scriptURL)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.querySelector("#dataTable tbody");
+      tbody.innerHTML = "";
+      data.records.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.customer}</td>
+          <td>${row.product}</td>
+          <td>${row.quantity}</td>
+          <td>${row.price}</td>
+          <td>${row.plate}</td>
+          <td>${row.delivery}</td>
+          <td>${row.payment}</td>
+          <td>${row.total}</td>
+          <td>
+            <button onclick='editRow(${JSON.stringify(row)})'>✏️</button>
+            <button onclick='deleteRow("${row.id}")'>🗑</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+}
+
+function editRow(row) {
+  document.getElementById("id").value = row.id;
+  document.getElementById("date").value = row.date;
+  document.getElementById("customer").value = row.customer;
+  document.getElementById("product").value = row.product;
+  document.getElementById("quantity").value = row.quantity;
+  document.getElementById("price").value = row.price;
+  document.getElementById("plate").value = row.plate;
+  document.getElementById("delivery").value = row.delivery;
+  document.getElementById("payment").value = row.payment;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteRow(id) {
+  if (confirm("ต้องการลบข้อมูลใช่หรือไม่?")) {
+    fetch(scriptURL, {
+      method: "POST",
+      body: JSON.stringify({ action: "delete", id }),
+      headers: { "Content-Type": "application/json" }
+    }).then(res => res.text()).then(loadData);
+  }
+}
+
+window.onload = loadData;
+</script>
+</body>
+</html>
