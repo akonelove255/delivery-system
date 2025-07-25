@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ระบบบันทึกรายการ</title>
+</head>
+<body>
+  <form id="deliveryForm">
+    <input type="text" id="date" placeholder="วันที่" />
+    <input type="text" id="customer" placeholder="ลูกค้า" />
+    <input type="text" id="product" placeholder="สินค้า" />
+    <input type="number" id="quantity" placeholder="จำนวน" />
+    <input type="number" id="price" placeholder="ราคา" />
+    <input type="text" id="plate" placeholder="ทะเบียน" />
+    <select id="statusDelivery">
+      <option value="">เลือกสถานะจัดส่ง</option>
+      <option value="จัดส่งแล้ว">จัดส่งแล้ว</option>
+      <option value="รอจัดส่ง">รอจัดส่ง</option>
+    </select>
+    <select id="statusPayment">
+      <option value="">เลือกสถานะชำระ</option>
+      <option value="ชำระแล้ว">ชำระแล้ว</option>
+      <option value="ยังไม่ชำระ">ยังไม่ชำระ</option>
+    </select>
+    <input type="hidden" id="rowIndex" />
+    <input type="hidden" id="recordId" />
+    <button type="submit">ยืนยันและบันทึก</button>
+  </form>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+
+    document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = getFormData();
+      if (!data) return;
+
+      data.action = data.rowIndex ? "edit" : "add";
+
+      const response = await fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.text();
+      alert(result);
+    });
+
+    function getFormData() {
+      const data = {
+        date: document.getElementById("date").value,
+        customer: document.getElementById("customer").value,
+        product: document.getElementById("product").value,
+        quantity: document.getElementById("quantity").value,
+        price: document.getElementById("price").value,
+        plate: document.getElementById("plate").value,
+        delivery: document.getElementById("statusDelivery").value,
+        payment: document.getElementById("statusPayment").value,
+      };
+
+      for (const key in data) {
+        if (!data[key]) {
+          alert("กรอกข้อมูลให้ครบ");
+          return null;
+        }
+      }
+
+      data.total = parseFloat(data.price) * parseFloat(data.quantity);
+      data.rowIndex = document.getElementById("rowIndex").value;
+      data.id = document.getElementById("recordId").value || Date.now();
+      return data;
+    }
+  </script>
+</body>
+</html>
