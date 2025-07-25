@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ระบบส่งของ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <h2 class="mb-4 text-center">📦 ระบบบันทึกการส่งของ</h2>
+
+    <!-- Form -->
+    <form id="deliveryForm" class="row g-2">
+      <div class="col-md-3"><input type="date" id="date" class="form-control" placeholder="วันที่" /></div>
+      <div class="col-md-3"><input type="text" id="customer" class="form-control" placeholder="ชื่อลูกค้า" /></div>
+      <div class="col-md-3"><input type="text" id="product" class="form-control" placeholder="สินค้า" /></div>
+      <div class="col-md-3"><input type="text" id="plate" class="form-control" placeholder="ทะเบียนรถ" /></div>
+
+      <div class="col-md-2"><input type="number" id="quantity" class="form-control" placeholder="จำนวน" /></div>
+      <div class="col-md-2"><input type="number" id="price" class="form-control" placeholder="ราคา/หน่วย" /></div>
+      <div class="col-md-4">
+        <select id="statusDelivery" class="form-select">
+          <option value="">สถานะจัดส่ง</option>
+          <option value="รอจัดส่ง">รอจัดส่ง</option>
+          <option value="จัดส่งแล้ว">จัดส่งแล้ว</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select id="statusPayment" class="form-select">
+          <option value="">สถานะชำระ</option>
+          <option value="ยังไม่ชำระ">ยังไม่ชำระ</option>
+          <option value="ชำระแล้ว">ชำระแล้ว</option>
+        </select>
+      </div>
+
+      <input type="hidden" id="rowIndex" />
+      <input type="hidden" id="recordId" />
+
+      <div class="col-12 text-center mt-2">
+        <button type="submit" class="btn btn-success px-4">✅ ยืนยันและบันทึก</button>
+      </div>
+    </form>
+
+    <hr />
+
+    <!-- Table -->
+    <h4 class="mt-4">📋 รายการทั้งหมด</h4>
+    <div id="data-table" class="table-responsive mt-2"></div>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+    let rowsData = [];
+
+    document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = getFormData();
+      if (!data) return;
+
+      data.action = data.rowIndex ? "edit" : "add";
+
+      const response = await fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.text();
+      alert(result);
+      document.getElementById("deliveryForm").reset();
+      document.getElementById("rowIndex").value = "";
+      document.getElementById("recordId").value = "";
+      fetchData();
+    });
+
+    function getFormData() {
+      const data = {
+        date: document.getElementById("date").value,
+        customer: document.getElementById("customer").value,
+        product: document.getElementById("product").value,
+        quantity: document.getElementById("quantity").value,
+        price: document.getElementById("price").value,
+        plate: document.getElementById("plate").value,
+        delivery: document.getElementById("statusDelivery").value,
+        payment: document.getElementById("statusPayment").value,
+      };
+
+      for (const key in data) {
+        if (!data[key]) {
+          alert("กรอกข้อมูลให้ครบ");
+          return null;
+        }
+      }
+
+      data.total = parseFloat(data.price) * parseFloat(data.quantity);
+      data.rowIndex = document.getElementById("rowIndex").value;
+      data.id = document.getElementById("recordId").value || Date.now();
+      return data;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const date = new Date(dateStr);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear() + 543;
+      return `${day}/${month}/${year}`;
+    }
+
+    function fetchData() {
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          rowsData = data.records;
+          renderTable();
+        });
+    }
+
+    function renderTable() {
+      const tableDiv = document.getElementById("data-table");
+      if (rowsData.length === 0) {
+        tableDiv.innerHTML = "<p class='text-muted'>ไม่มีข้อมูล</p>";
+        return;
+      }
+
+      let html = "<table class='table table-bordered table-hover table-striped'><thead class='table-success'><tr>";
+      html += "<th>ลำดับ</th><th>วันที่</th><th>ลูกค้า</th><th>สินค้า</th><th>จำนวน</th><th>ราคา</th><th>รวม</th><th>ทะเบียน</th><th>จัดส่ง</th><th>ชำระ</th><th>การกระทำ</th></tr></thead><tbody>";
+
+      rowsData.forEach((row, i) => {
+        html += `<tr>
+          <td>${i + 1}</td>
+          <td>${formatDate(row.date)}</td>
+          <td>${row.customer || ""}</td>
+          <td>${row.product || ""}</td>
+          <td>${row.quantity || ""}</td>
+          <td>${row.price || ""}</td>
+          <td>${row.total || ""}</td>
+          <td>${row.plate || ""}</td>
+          <td>${row.delivery || ""}</td>
+          <td>${row.payment || ""}</td>
+    <td>
+      <button class='btn btn-sm btn-warning' onclick='editRow(${i})'>✏️</button>
+      <button class='btn btn-sm btn-danger' onclick='deleteRow(${i})'>🗑</button>
+    </td>
+        </tr>`;
+      });
+
+      html += "</tbody></table>";
+      tableDiv.innerHTML = html;
+    }
+
+    fetchData();
+  
+    function editRow(index) {
+      const row = rowsData[index];
+      document.getElementById("date").value = row.date;
+      document.getElementById("customer").value = row.customer;
+      document.getElementById("product").value = row.product;
+      document.getElementById("quantity").value = row.quantity;
+      document.getElementById("price").value = row.price;
+      document.getElementById("plate").value = row.plate;
+      document.getElementById("statusDelivery").value = row.delivery;
+      document.getElementById("statusPayment").value = row.payment;
+      document.getElementById("rowIndex").value = row.rowIndex;
+      document.getElementById("recordId").value = row.id;
+    }
+
+    function deleteRow(index) {
+      const row = rowsData[index];
+      if (!confirm("ยืนยันการลบข้อมูล?")) return;
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete", rowIndex: row.rowIndex }),
+      })
+        .then(res => res.text())
+        .then(msg => {
+          alert(msg);
+          fetchData();
+        });
+    }
+</script>
+</body>
+</html>
