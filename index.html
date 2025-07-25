@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JIRANYA 2526 | ระบบส่งของ POST Only</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans p-4">
+  <h1 class="text-2xl font-bold text-green-700 mb-4">📦 ระบบส่งของ JIRANYA 2526 (POST Only)</h1>
+
+  <!-- ฟอร์มกรอกข้อมูล -->
+  <form id="delivery-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded shadow mb-6">
+    <input type="hidden" id="row" />
+    <div><label>วันที่</label><input type="date" id="date" class="w-full border p-1" required /></div>
+    <div><label>ชื่อลูกค้า</label><input type="text" id="customer" class="w-full border p-1" required /></div>
+    <div><label>สินค้า</label><input type="text" id="product" class="w-full border p-1" required /></div>
+    <div><label>จำนวน</label><input type="number" id="quantity" class="w-full border p-1" required /></div>
+    <div><label>ราคาต่อหน่วย</label><input type="number" id="unitPrice" class="w-full border p-1" required /></div>
+    <div><label>ทะเบียนรถ</label><input type="text" id="plate" class="w-full border p-1" /></div>
+    <div><label>สถานะจัดส่ง</label><input type="text" id="deliveryStatus" class="w-full border p-1" /></div>
+    <div><label>สถานะชำระเงิน</label><input type="text" id="paymentStatus" class="w-full border p-1" /></div>
+    <div class="flex items-end"><button class="bg-green-600 text-white px-4 py-2 rounded" type="submit">💾 บันทึก</button></div>
+  </form>
+
+  <!-- ค้นหา -->
+  <div class="mb-2"><input type="text" id="search" placeholder="🔍 ค้นหา..." class="border p-2 w-full md:w-1/2" /></div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border" id="data-table">
+      <thead class="bg-green-100 text-left">
+        <tr>
+          <th class="p-2 border">#</th>
+          <th class="p-2 border">วันที่</th>
+          <th class="p-2 border">ลูกค้า</th>
+          <th class="p-2 border">สินค้า</th>
+          <th class="p-2 border">จำนวน</th>
+          <th class="p-2 border">ราคา/หน่วย</th>
+          <th class="p-2 border">รวม</th>
+          <th class="p-2 border">ทะเบียน</th>
+          <th class="p-2 border">สถานะจัดส่ง</th>
+          <th class="p-2 border">สถานะชำระ</th>
+          <th class="p-2 border">การจัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbx-17hkFaaKHyLASwoj816uoMO2_C-PgT4kpdqT4gfkWazUGVbI_M1EaoCuGTwwPhvnNQ/exec";
+
+    document.getElementById("delivery-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const row = document.getElementById("row").value;
+      const data = {
+        action: row ? "update" : "create",
+        row,
+        date: document.getElementById("date").value,
+        customer: document.getElementById("customer").value,
+        product: document.getElementById("product").value,
+        quantity: document.getElementById("quantity").value,
+        unitPrice: document.getElementById("unitPrice").value,
+        total: document.getElementById("quantity").value * document.getElementById("unitPrice").value,
+        plate: document.getElementById("plate").value,
+        deliveryStatus: document.getElementById("deliveryStatus").value,
+        paymentStatus: document.getElementById("paymentStatus").value,
+      };
+      
+      console.log("🚀 Sending data to Google Apps Script:", data);
+      const res = await fetch(ENDPOINT, {
+
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const resText = await res.text();
+      console.log("✅ Response:", resText);
+
+      loadData();
+    });
+
+    function editRow(index, item) {
+      document.getElementById("row").value = index + 2;
+      document.getElementById("date").value = item[0];
+      document.getElementById("customer").value = item[1];
+      document.getElementById("product").value = item[2];
+      document.getElementById("quantity").value = item[3];
+      document.getElementById("unitPrice").value = item[4];
+      document.getElementById("plate").value = item[6];
+      document.getElementById("deliveryStatus").value = item[7];
+      document.getElementById("paymentStatus").value = item[8];
+    }
+
+    async function deleteRow(index) {
+      if (confirm("คุณแน่ใจว่าต้องการลบรายการนี้?")) {
+        await fetch(`${ENDPOINT}?delete=${index + 2}`, { method: "DELETE" });
+        loadData();
+      }
+    }
+
+    function renderTable(data) {
+      const keyword = document.getElementById("search").value.toLowerCase();
+      const tbody = document.getElementById("table-body");
+      tbody.innerHTML = "";
+      data.forEach((item, index) => {
+        if (item.join().toLowerCase().includes(keyword)) {
+          const row = `<tr class="hover:bg-green-50">
+            <td class="p-1 border">${index + 1}</td>
+            <td class="p-1 border">${item[0]}</td>
+            <td class="p-1 border">${item[1]}</td>
+            <td class="p-1 border">${item[2]}</td>
+            <td class="p-1 border">${item[3]}</td>
+            <td class="p-1 border">${item[4]}</td>
+            <td class="p-1 border">${item[5]}</td>
+            <td class="p-1 border">${item[6]}</td>
+            <td class="p-1 border">${item[7]}</td>
+            <td class="p-1 border">${item[8]}</td>
+            <td class="p-1 border space-x-2">
+              <button onclick='editRow(${index}, ${JSON.stringify(item)})' class="text-blue-600">แก้ไข</button>
+              <button onclick='deleteRow(${index})' class="text-red-600">ลบ</button>
+            </td>
+          </tr>`;
+          tbody.insertAdjacentHTML("beforeend", row);
+        }
+      });
+    }
+
+    async function loadData() {
+      const res = await fetch(ENDPOINT);
+      const data = await res.json();
+      renderTable(data);
+    }
+
+    document.getElementById("search").addEventListener("input", loadData);
+    loadData();
+  </script>
+</body>
+</html>
