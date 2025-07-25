@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ระบบส่งของ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+  <h3>📦 รายการทั้งหมด</h3>
+  <input type="text" id="search" class="form-control my-2" placeholder="🔍 ค้นหา..." oninput="renderTable()" />
+  <div id="data-table"></div>
+</div>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+let rowsData = [];
+
+function fetchData() {
+  fetch(scriptURL)
+    .then(res => res.json())
+    .then(data => {
+      rowsData = data.records;
+      renderTable();
+    });
+}
+fetchData();
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+function renderTable() {
+  const table = document.getElementById("data-table");
+  const keyword = document.getElementById("search").value.toLowerCase();
+  let html = '<table class="table table-bordered table-sm table-striped">';
+  html += `<thead class="table-success"><tr>
+    <th>#</th><th>วันที่</th><th>ลูกค้า</th><th>สินค้า</th><th>จำนวน</th>
+    <th>ราคา/หน่วย</th><th>รวม</th><th>ทะเบียน</th><th>สถานะจัดส่ง</th><th>สถานะชำระ</th>
+  </tr></thead><tbody>`;
+
+  rowsData.filter(row => {
+    return Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+  }).forEach((row, i) => {
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td>${row.date ? formatDate(row.date) : ""}</td>
+      <td>${row.customer || ""}</td>
+      <td>${row.product || ""}</td>
+      <td>${row.quantity || ""}</td>
+      <td>${row.price || ""}</td>
+      <td>${row.total || ""}</td>
+      <td>${row.plate || ""}</td>
+      <td>${row.delivery || ""}</td>
+      <td>${row.payment || ""}</td>
+    </tr>`;
+  });
+
+  html += "</tbody></table>";
+  table.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
