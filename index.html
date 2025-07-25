@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ระบบส่งของ</title>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+
+    function deleteRow(rowIndex) {
+      if (parseInt(rowIndex) <= 1) {
+        alert("❌ ไม่สามารถลบแถวหัวตารางได้");
+        return;
+      }
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete", rowIndex }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.text())
+      .then(() => {
+        alert("ลบข้อมูลเรียบร้อยแล้ว");
+        location.reload();
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>📋 รายการส่งของ</h1>
+  <button onclick="deleteRow(1)">ทดสอบลบแถว 1</button>
+  <button onclick="deleteRow(3)">ลบแถวที่ 3</button>
+</body>
+</html>
