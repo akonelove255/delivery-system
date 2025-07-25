@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ระบบส่งของ JIRANYA 2526</title>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec";
+    // เพิ่มตัวอย่างการ fetch
+    async function testConnection() {
+      const res = await fetch(scriptURL);
+      const data = await res.text();
+      console.log("ตอบกลับจาก Apps Script:", data);
+    }
+    window.onload = testConnection;
+  </script>
+</head>
+<body>
+  <h1>ระบบส่งของ JIRANYA 2526</h1>
+  <p>เชื่อมต่อกับ Google Sheets เรียบร้อยแล้ว</p>
+  <p>Script URL: <code>https://script.google.com/macros/s/AKfycbw_NCrm7xWewayAUPEk3aChWU-GMjgtp0Fjgy7adTOGCawPBQV3jCyooaswf5NVRdd6/exec</code></p>
+</body>
+</html>
